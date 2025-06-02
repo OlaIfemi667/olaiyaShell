@@ -1,6 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define OLA_RL_BUFSIZE 1024 // taille du tampon pour la ligne de commande
+#define OLA_TOK_BUFSIZE 64 // taille du tampon pour les arguments de la commande
+#define OLA_TOK_DELIM " \t\r\n\a" // délimiteurs pour diviser la ligne de commande
+
+
+char **ola_split_line(char * ligne){
+    int bufsize = OLA_TOK_BUFSIZE, position = 0;
+    char **tokens = malloc(bufsize * sizeof(char*));
+    char *token;
+
+    if (!tokens)
+    {
+        fprintf(stderr, "ola: allocation d'espace mémoire échouée\n");
+        exit(EXIT_FAILURE);
+    }
+    token = strtok(ligne, OLA_TOK_DELIM); //En gros on utilise strtok pour creer des tokens  a partir de la variable ligne et des délimiteurs ***OLA_TOK_DELIM " \t\r\n\a"
+    
+
+    while (token != NULL)
+    {
+        tokens[position] = token;
+        position++;
+
+        if (position >= bufsize)
+        {
+            bufsize += OLA_TOK_BUFSIZE;
+            tokens =  realloc(tokens, bufsize * sizeof(char*));
+
+            if (!tokens)
+            {
+                fprintf(stderr, "ola: allocation d'espace mémoire échouée\n");
+                exit(EXIT_FAILURE);
+            }
+            
+        }
+        token = strtok(NULL, OLA_TOK_DELIM);
+    }
+    tokens[position] = NULL;
+    return tokens;
+    
+
+}
 
 
 void *ola_read_line(void)
