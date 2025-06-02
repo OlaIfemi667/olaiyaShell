@@ -4,6 +4,47 @@
 #define OLA_TOK_BUFSIZE 64 // taille du tampon pour les arguments de la commande
 #define OLA_TOK_DELIM " \t\r\n\a" // délimiteurs pour diviser la ligne de commande
 
+int ola_launch(char **args)
+{
+	pid_t pid, wpid;
+	int status;
+
+	pid = fork();
+
+	if (pid == 0)
+	{
+		// ce qu\'il faut comprendre c\'est que fork créer deux process un pere et son fils
+		// le fils retourne 0  et le pere le pid de son fils
+		// pour donc executer une commande on l'exécute dans le fils.
+		// Pour faire claire quand on exécuter ce program a la ligne fork un process fils sera créé et on l'utilisera pour exécuter
+		// la nouvelle tache et comme pid == 0 l'enfant est bien créé
+		// Nous sommes "dans" le process enfant actuellement
+
+		if (execcvp(args[0], args) == -1){
+			perror("Ola");
+		}
+		exit(EXIT_FAILURE);
+	}
+
+	else if (pid < 0){
+		perror("Ola");
+	}
+
+
+	else{
+		//Process Père
+		//Si on est ici c'est que tout s'est bien passé le process enfant est entrain  d'exécuter la command et le pere doit attendre
+		//
+
+		do{
+			wpid = waitpid(pid, &status, WUNTRACED);
+		}
+		while (!WIFEXITED(status) &&!WIFSIGNALED(status));
+	}
+	return 1;
+}
+
+
 
 char **ola_split_line(char * ligne){
     int bufsize = OLA_TOK_BUFSIZE, position = 0;
@@ -30,7 +71,6 @@ char **ola_split_line(char * ligne){
 
             if (!tokens)
             {
-                fprintf(stderr, "ola: allocation d'espace mémoire échouée\n");
                 exit(EXIT_FAILURE);
             }
             
@@ -40,7 +80,6 @@ char **ola_split_line(char * ligne){
     tokens[position] = NULL;
     return tokens;
     
-
 }
 
 
