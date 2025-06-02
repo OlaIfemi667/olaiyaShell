@@ -4,6 +4,23 @@
 #define OLA_TOK_BUFSIZE 64 // taille du tampon pour les arguments de la commande
 #define OLA_TOK_DELIM " \t\r\n\a" // délimiteurs pour diviser la ligne de commande
 
+
+// les commandes buildin
+// Elles doivent etre coder en interne
+// Si on prend par exemple est commandes cd ou exit (ou toute commande qui est destiner a modifier le shell)
+// nous devons la coder en interne et pas utiliser une commande externe car utiliser une commande externe creera un nouveau process enfant et la
+//commande s'exécutera dans l'enfant sans modifier le parent (ici notre shell) ce qui est inutile dans notre cas
+
+
+int ola_cd(char **args); 
+int ola_help(char **args);
+int ola_exit(char **args);
+int ola_pwd(char ** args);
+
+
+
+//
+
 int ola_launch(char **args)
 {
 	pid_t pid, wpid;
