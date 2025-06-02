@@ -1,1 +1,1 @@
-J'ai codé un shell en c, c'est le step 1 d'un de mes side quests.
+J'ai codé un shell en c, c'est le step 1 d'une de mes side quests.
