@@ -18,8 +18,49 @@ int ola_exit(char **args);
 int ola_pwd(char ** args);
 
 
+char **buildin_str = {
+	"cd",
+	"help",
+	"exit"
+};
 
-//
+
+
+int  (*builtin_func[]) (char **) = {
+	// ceci est un tableau de pointeur vers les fonctions builtin et chaque fonctions prends un "char **"
+	&lsh_cd,
+	&lsh_help,
+	&lsh_exit
+};
+
+
+int ola_num_builtins(){
+	// cette function calcule de nmbre de fonction buildIn dans le 
+	return sizeof(builtin_str) / sizeof(char *);
+}
+
+
+/*Implémentation des fonctions builtin*/
+
+int ola_cd(char **args)
+{
+	if (args[1] == NULL)
+	{	 
+                fprintf(stderr, "ola: allocation d'espace mémoire échouée\n");
+	}
+	else
+	{
+		if (chdir(args[1]) != 0)
+		{
+			// si le cd échoue 
+			perror("ola");
+		}
+	}
+	return 1;
+}
+
+
+//ici je vais coder pwd
 
 int ola_launch(char **args)
 {
