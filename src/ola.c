@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <string.h>
 #define OLA_RL_BUFSIZE 1024 // taille du tampon pour la ligne de commande
 #define OLA_TOK_BUFSIZE 64 // taille du tampon pour les arguments de la commande
 #define OLA_TOK_DELIM " \t\r\n\a" // délimiteurs pour diviser la ligne de commande
@@ -18,7 +21,7 @@ int ola_exit(char **args);
 int ola_pwd(char ** args);
 
 
-char **buildin_str = {
+char *builtin_str[] = {
 	"cd",
 	"help",
 	"exit"
@@ -28,9 +31,9 @@ char **buildin_str = {
 
 int  (*builtin_func[]) (char **) = {
 	// ceci est un tableau de pointeur vers les fonctions builtin et chaque fonctions prends un "char **"
-	&lsh_cd,
-	&lsh_help,
-	&lsh_exit
+	&ola_cd,
+	&ola_help,
+	&ola_exit
 };
 
 
@@ -59,8 +62,27 @@ int ola_cd(char **args)
 	return 1;
 }
 
+int ola_help(char **args)
+{
+	int i;
+	printf("Ola's Shell\n");
+	printf("Conçu a partir du tutoriel de Stephen Brennan's LSH \n");
+	printf("Voiçi les fontions builtin:\n");
 
-//ici je vais coder pwd
+	for (i = 0; i < ola_num_builtins(); i++)
+	{
+		printf("	%s\n", builtin_str[i]);
+	}
+
+	printf("Utilisez man pour avoir des informations sur les autres programmes\n");
+	return 1;
+}
+
+int ola_exit(char ** args)
+{
+	return 0;
+}
+
 
 int ola_launch(char **args)
 {
@@ -78,7 +100,7 @@ int ola_launch(char **args)
 		// la nouvelle tache et comme pid == 0 l'enfant est bien créé
 		// Nous sommes "dans" le process enfant actuellement
 
-		if (execcvp(args[0], args) == -1){
+		if (execvp(args[0], args) == -1){
 			perror("Ola");
 		}
 		exit(EXIT_FAILURE);
@@ -189,6 +211,30 @@ void *ola_read_line(void)
 
 
 
+//ola_execute elle permet de choisir si on exécute un built in (si largument entrer correspond a un built) ou un process (si non)
+
+int ola_execute(char **args)
+{
+	int i;
+	
+	if( args[0] == NULL)
+	{
+		return 1;
+	}
+
+	for (i = 0; i < ola_num_builtins(); i++)
+	{
+		if (strcmp(args[0], builtin_str[i]) == 0) //strcmp compare les strings si == 0  alors ils sont ego sinon l'un est plus grand que l'autre et on peut déterminer lequel en fonction du signe
+		{
+			return (*builtin_func[i])(args);
+		}
+	}
+
+	return ola_launch(args);
+}
+
+
+// c'est la boucle, classique pour tout les shells
 void ola_loop(){
     char *ligne;
     char **args; // c'est in split de ligne
@@ -206,7 +252,6 @@ void ola_loop(){
     } while (status);
 
 }
-
 // the main function
 int main(int argc, char **argv)
 {
